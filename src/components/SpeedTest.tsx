@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Progress } from "@/components/ui/progress";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Download, Upload, Wifi, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import GaugeChart from 'react-gauge-chart';
 
 const SpeedTest = () => {
   const [testing, setTesting] = useState(false);
@@ -25,13 +25,11 @@ const SpeedTest = () => {
         const startTime = performance.now();
         
         if (type === 'download') {
-          // Test download speed by fetching a large file
           const response = await fetch(`https://speed.cloudflare.com/__down?bytes=${testFileSize}`, {
             cache: 'no-store'
           });
           const data = await response.arrayBuffer();
         } else {
-          // Test upload speed by sending data
           const testData = new Blob([new ArrayBuffer(testFileSize)]);
           await fetch('https://speed.cloudflare.com/__up', {
             method: 'POST',
@@ -44,6 +42,12 @@ const SpeedTest = () => {
         const duration = (endTime - startTime) / 1000; // Convert to seconds
         const speedMbps = (testFileSize * 8) / (1024 * 1024 * duration); // Convert to Mbps
         totalSpeed += speedMbps;
+
+        // Update the download speed dynamically
+        if (type === 'download') {
+          setDownloadSpeed(parseFloat(speedMbps.toFixed(2)));
+          await new Promise(resolve => setTimeout(resolve, 1000)); // Simulate delay for visualization
+        }
       }
 
       const averageSpeed = totalSpeed / iterations;
@@ -91,7 +95,6 @@ const SpeedTest = () => {
     setPing(null);
     
     try {
-      // Run tests in sequence
       setCurrentTest('ping');
       await calculatePing();
       
@@ -140,38 +143,36 @@ const SpeedTest = () => {
           <Progress value={progress} className="h-3 bg-violet-100" />
           
           <div className="mt-8 grid grid-cols-3 gap-8">
-            <div className={`text-center transition-all duration-300 ${currentTest === 'download' ? 'scale-110' : ''}`}>
-              <div className="flex items-center justify-center mb-2">
-                {currentTest === 'download' ? (
-                  <Loader2 className="w-8 h-8 text-violet-600 animate-spin" />
-                ) : (
-                  <Download className="w-8 h-8 text-violet-600" />
-                )}
-              </div>
+            <div className="text-center">
+              <GaugeChart
+                id="gauge-chart1"
+                nrOfLevels={30}
+                arcsLength={[0.3, 0.7]}
+                colors={['#4f46e5', '#e0e0e0']}
+                percent={downloadSpeed ? downloadSpeed / 100 : 0}
+                textColor="#4f46e5"
+                style={{ width: '250px', height: '250px' }}
+              />
               <p className="text-sm text-gray-600 mb-1">Download</p>
               <p className="text-2xl font-bold text-violet-600">
-                {downloadSpeed ? `${downloadSpeed} Mbps` : '--'}
+                {downloadSpeed ? `${downloadSpeed.toFixed(2)} Mbps` : '--'}
               </p>
-              {currentTest === 'download' && (
-                <p className="text-sm text-violet-500 animate-pulse">Calculating...</p>
-              )}
             </div>
 
-            <div className={`text-center transition-all duration-300 ${currentTest === 'upload' ? 'scale-110' : ''}`}>
-              <div className="flex items-center justify-center mb-2">
-                {currentTest === 'upload' ? (
-                  <Loader2 className="w-8 h-8 text-indigo-600 animate-spin" />
-                ) : (
-                  <Upload className="w-8 h-8 text-indigo-600" />
-                )}
-              </div>
+            <div className="text-center">
+              <GaugeChart
+                id="gauge-chart2"
+                nrOfLevels={30}
+                arcsLength={[0.3, 0.7]}
+                colors={['#3b82f6', '#e0e0e0']}
+                percent={uploadSpeed ? uploadSpeed / 100 : 0}
+                textColor="#3b82f6"
+                style={{ width: '250px', height: '250px' }}
+              />
               <p className="text-sm text-gray-600 mb-1">Upload</p>
               <p className="text-2xl font-bold text-indigo-600">
-                {uploadSpeed ? `${uploadSpeed} Mbps` : '--'}
+                {uploadSpeed ? `${uploadSpeed.toFixed(2)} Mbps` : '--'}
               </p>
-              {currentTest === 'upload' && (
-                <p className="text-sm text-indigo-500 animate-pulse">Calculating...</p>
-              )}
             </div>
 
             <div className={`text-center transition-all duration-300 ${currentTest === 'ping' ? 'scale-110' : ''}`}>
