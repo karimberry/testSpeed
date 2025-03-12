@@ -16,8 +16,8 @@ const SpeedTest = () => {
   const { toast } = useToast();
 
   const calculateSpeed = async (type: 'download' | 'upload') => {
-    const testFileSize = 5 * 1024 * 1024; // 5MB test file
-    const iterations = 3; // Number of test iterations
+    const testFileSize = 5 * 1024 * 1024; 
+    const iterations = 3; 
     let totalSpeed = 0;
 
     try {
