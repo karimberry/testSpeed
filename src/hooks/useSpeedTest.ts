@@ -25,6 +25,7 @@ export const useSpeedTest = () => {
       method: 'POST',
       body: blob
     });
+    console.log(response)
     
     if (!response.ok) {
       throw new Error('Network test failed');
@@ -49,6 +50,7 @@ export const useSpeedTest = () => {
         const response = await fetch('https://httpbin.org/get', {
           cache: 'no-store'
         });
+        console.log(response)
         if (!response.ok) throw new Error('Ping test failed');
         const endTime = performance.now();
         totalPing += (endTime - startTime);
